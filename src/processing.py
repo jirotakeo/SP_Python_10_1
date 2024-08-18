@@ -15,8 +15,8 @@ def filter_by_state(data: list[dict[str, Any]], stat="EXECUTED") -> list[dict[st
 def sort_by_date(data: list[dict[str, Any]], ascending=True) -> list[dict[str, Any]]:
     """Принимает список словарей и необязательный параметр, задающий порядок сортировки (по умолчанию — убывание).
     Возвращает новый список, отсортированный по дате"""
-    result = sorted(data, key=lambda x: x.get("date"), reverse=ascending)
-    return result
+
+    return sorted(data, key=lambda x: x["date"], reverse=ascending)
 
 
 test_data = [
