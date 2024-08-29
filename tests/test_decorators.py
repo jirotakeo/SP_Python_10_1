@@ -6,13 +6,11 @@ def test_func(a, b):
     return a / b
 
 
-def test_1_log(capsys):
-    test_func(2, 0)
-    captured = capsys.readouterr()
-    assert captured.out == "Function: test_func -> error: ZeroDivisionError -> inputs: ((2, 0), {})\n"
+def test_1_log(caplog):
+    assert test_func(2, 0) is None
+    assert caplog.record_tuples[0][2] == "Function: test_func -> error: ZeroDivisionError -> inputs: ((2, 0), {})"
 
 
-def test_2_log(capsys):
-    test_func(32, 8)
-    captured = capsys.readouterr()
-    assert captured.out == "Function: test_func ok\n"
+def test_2_log(caplog):
+    assert test_func(32, 8) == 4
+    assert caplog.record_tuples[0][2] == "Function: test_func ok"

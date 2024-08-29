@@ -1,38 +1,30 @@
-# from datetime import datetime
+import logging
+import sys
 from typing import Any, Callable
 
-from mypy_extensions import KwArg, VarArg
+formatter = logging.Formatter("%(asctime)s %(levelname)s\t%(message)s")
+logging.basicConfig(handlers=[logging.NullHandler()], force=True, encoding="utf-8", level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
-def log(filename=""):
+def log(filename: str = "") -> Callable[[Callable], Callable]:
     """Logging decorator"""
 
-    def my_decorator(func: Callable) -> Callable[[tuple[Any, ...], dict[str, Callable[[Any, Any], str]]], str]:
-        def wrapper(*args, **kwargs: Callable[[VarArg(Any), KwArg(Any)], str]) -> Any:
+    def my_decorator(func: Callable) -> Callable[..., Any]:
+        logging_handler: logging.Handler = logging.StreamHandler(sys.stdout)
+        if filename:
+            logging_handler = logging.FileHandler(filename)
+        logging_handler.setFormatter(formatter)
+        logger.addHandler(logging_handler)
+
+        def wrapper(*args: tuple, **kwargs: dict[str, Any]) -> Any:
+            result = None
             try:
                 result = func(*args, **kwargs)
-                if filename:
-                    with open(filename, "w") as file:
-                        # file.write(f"Start: {datetime.now()}\n")
-                        file.write(f"Function: {func.__name__} -> ok")
-                        # file.write(f"Finish: {datetime.now()}\n")
-                else:
-                    # print(f"Start: {datetime.now()}\n")
-                    print(f"Function: {func.__name__} ok")
-                    # print(f"Finish: {datetime.now()}\n")
-                return result
+                logger.debug("Function: %s ok", func.__name__)
             except Exception as e:
-                if filename:
-                    with open(filename, "w") as file:
-                        # file.write(f"Start: {datetime.now()}\n")
-                        file.write(
-                            f"Function: {func.__name__} -> error: {e.__class__.__name__} -> inputs: {args, kwargs}"
-                        )
-                        # file.write(f"Finish: {datetime.now()}\n")
-                else:
-                    # print(f"Start: {datetime.now()}\n")
-                    print(f"Function: {func.__name__} -> error: {e.__class__.__name__} -> inputs: {args, kwargs}")
-                    # print(f"Finish: {datetime.now()}\n")
+                logger.debug(f"Function: {func.__name__} -> error: {e.__class__.__name__} -> inputs: {args, kwargs}")
+            return result
 
         return wrapper
 
